@@ -1,0 +1,121 @@
+---
+title: "Midterm Exam"
+author: "Jiaheng Li"
+date: "11/2/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Instruction
+
+This is your midterm exam that you are expected to work on it alone.  You may NOT  discuss any of the content of your exam with anyone except your instructor. This includes text, chat, email and other online forums.  We expect you to respect and follow the [GRS Academic and Professional Conduct Code](http://www.bu.edu/cas/files/2017/02/GRS-Academic-Conduct-Code-Final.pdf). 
+
+Although you may NOT ask anyone directly, you are allowed to use external resources such as R codes on the Internet.  If you do use someone's code, please make sure you clearly cite the origin of the code.
+
+When you finish, please compile and submit the PDF file and the link to the GitHub repository that contains the entire analysis.
+
+
+## Introduction
+
+In this exam, you will act as both the client and the consultant for the data that you collected in the data collection exercise (20pts).  Please note that you are not allowed to change the data.  The goal of this exam is to demonstrate your ability to perform the statistical analysis that you learned in this class so far.  It is important to note that significance of the analysis is not the main goal of this exam but the focus is on the appropriateness of your approaches.
+
+### Data Description (10pts)
+
+Please explain what your data is about and what the comparison of interest is.  In the process, please make sure to demonstrate that you can load your data properly into R.
+#I asked my 5 of my friends with different financial capabilities on Wechat about what’s the maximum money they would spend on their daily expenditure and I would  like to understand whether money has an impact on people to determine themselves happy or not. My initial hypothesis is that people who spend more on their daily expenditure will have a better ability to determine themselves happy or not.#
+```{r }
+library(corrplot)
+library(pwr)
+Data<-read.csv ("C://Users//aaron//OneDrive//Desktop//678 Midterm//Data Collection.csv",header=TRUE)
+Data[,4] <- factor(Data[,4])
+str(Data) #check data type
+head(Data) #check data
+```
+
+### EDA (10pts)
+
+Please create one (maybe two) figure(s) that highlights the contrast of interest.  Make sure you think ahead and match your figure with the analysis.  For example, if your model requires you to take a log, make sure you take log in the figure as well.
+
+```{r }
+library(corrplot)
+library(pwr)
+
+#Pie chart of feeling whether happiness or not
+pie1 <- table(Data$Happiness)
+lals_pct <- paste(names(pie1), "", round(pie1/sum(pie1)*100, 0), "%", sep="")
+pie(pie1,col = c("#1F497D", "#C5D9F1"),labels = lals_pct)
+
+#Independent variable correlation diagram
+corr <- cor(Data[,1:3])
+corrplot(corr = corr,,order="AOE",type="upper",tl.pos="d")
+kappa(corr,exact = TRUE)
+```
+
+### Power Analysis (10pts)
+
+Please perform power analysis on the project.  Use 80% power, the sample size you used and infer the level of effect size you will be able to detect.  Discuss whether your sample size was enough for the problem at hand.  Please note that method of power analysis should match the analysis.  Also, please clearly state why you should NOT use the effect size from the fitted model.
+
+```{r }
+pwr.r.test( n=5 , sig.level = 0.05, power = 0.8 )
+#Perform power test with sample size n=5, sig.level = 0.05, power = 0.8, the result shows that the effect size is 0.95.#
+pwr.r.test( r = 0.5 , sig.level = 0.05, power = 0.8 )
+#If effect size=0.5 indicates that the sample size of this study is insufficient#
+#Choosing the effect size of the fitted model would be a meaningless circular argument and the sample size is sufficient.#
+```
+#The issue is that to run an 80% power analysis it needs a sample size contains at least 28 samples to actually achieve the test power. However, since I only have 5 of them, it will make the analysis results unrepresentative. I set the effect size as 0.5 which #
+
+
+### Modeling (10pts)
+
+Please pick a regression model that best fits your data and fit your model.  Please make sure you describe why you decide to choose the model. Also, if you are using GLM, make sure you explain your choice of link function as well.
+```{r warning=F}
+#Establish the logistics regression model#
+fit <- glm(Happiness~Cloth+Meal+Apartment_rent,data = Data,family = binomial )
+
+#Stepwise regression to select variables#
+fit_step <- step(fit)
+
+#Perform model testing on the 3-variable logistic model and the stepwise logistic model
+anova(fit_step, fit, test = "Chisq")
+#After the above chi-square test, the two models are not significant. Therefore, according to the "Occam's Razor Principle", it's would be better to choose a simpler model which is the 'fit_step'. And that indicate that Apartment_rent is a significant factor in Happiness.#
+```
+
+### Validation (10pts)
+
+Please perform a necessary validation and argue why your choice of the model is appropriate.  
+
+```{r }
+plot(rstudent(fit_step))
+#If the assumption that the error obeys the normal distribution is true, then the distribution of the standard residuals should also obey the normal distribution, that is, in the standardized residual diagram, 95% of the standardized residuals are between -2*se and 2*se . The standard residual plot of this study fits this situation.#
+```
+
+
+### Inference (10pts)
+
+Based on the result so far please perform statistical inference to compare the comparison of interest.
+
+```{r warning=F}
+summary(fit_step)
+coef(fit_step)
+#According to the logistic  regression model, 'Apartment_rent' is a important factor affecting people's awareness of happiness and the coefficient of it is -4.471e-01.
+```
+
+
+### Discussion (10pts)
+
+Please clearly state your conclusion and the implication of the result.
+
+#This study collects data on five people's spending on clothes, food, and rent and their happiness or not, and uses a logistic regression model to analyze the factors that affect happiness.The results of the logistic  regression model show that rent is a significant factor influencing happiness, with a coefficient of -0.447, indicating that the higher the rent, the lower the happiness. This is consistent with our common sense.
+
+### Limitations and future opportunity. (10pts)
+
+Please list concerns about your analysis.  Also, please state how you might go about fixing the problem in your future study.
+
+#The 'clothing' and 'meal' variables are not significant in this study, possibly because the data volume is small and the minimum sample size requirement is not met. Therefore, one thing I can do is to continue to collect data and analyze it after the sample size reaches the minimum requirement.#
+
+### Comments or questions
+If you have any comments or questions, please write them here.
+
